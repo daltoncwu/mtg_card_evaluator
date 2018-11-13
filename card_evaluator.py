@@ -25,8 +25,10 @@ def getCardByName(card_name):
 def computeFeatures(card):
 	if (isinstance(card, dict)):
 		features =  (getSize(card["colors"]), card["cmc"], getSize(card["text"]))
-	else:
+	elif (isinstance(card, Card)):
 		features = (getSize(card.colors), card.cmc, getSize(card.text))
+	else:
+		raise TypeError("Card argument was not in an appropriate format.")
 	#print("colors: %s, cmc: %s, textLength: %s" % features)
 	return features
 
