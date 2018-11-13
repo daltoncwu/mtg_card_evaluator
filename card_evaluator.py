@@ -21,6 +21,7 @@ def getCardByName(card_name):
 			return card
 	raise ValueError('No card was found with the name "%s"' % string)
 
+#Handles input if card is a dict or a mtgsdk.Card
 def computeFeatures(card):
 	if (isinstance(card, dict)):
 		features =  (getSize(card["colors"]), card["cmc"], getSize(card["text"]))
