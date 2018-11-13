@@ -2,6 +2,7 @@ import json
 from sklearn import tree
 import os
 import re
+from mtgsdk import Card
 
 GRN_SET_FILE_LOCATION = 'resources/grn_mtg_sdk_data.json'
 ALL_CARDS_FILE_LOCATION = 'resources/python_mtg_sdk_data.json'
@@ -12,6 +13,24 @@ def getSize(collection1):
 		return 0
 	else:
 		return len(collection1)
+
+def getCardByName(card_name):
+	cards = Card.where(name=card_name).all()
+	for card in cards:
+		if (card.name == card_name):
+			return card
+	raise ValueError('No card was found with the name "%s"' % string)
+
+#Handles input if card is a dict or a mtgsdk.Card
+def computeFeatures(card):
+	if (isinstance(card, dict)):
+		features =  (getSize(card["colors"]), card["cmc"], getSize(card["text"]))
+	elif (isinstance(card, Card)):
+		features = (getSize(card.colors), card.cmc, getSize(card.text))
+	else:
+		raise TypeError("Card argument was not in an appropriate format.")
+	#print("colors: %s, cmc: %s, textLength: %s" % features)
+	return features
 
 def getPlayedCards():
 	playedCards = set()
@@ -34,12 +53,11 @@ with open(GRN_SET_FILE_LOCATION, 'r', encoding='utf-8') as file:#Using smaller G
 
 cards = json.loads(file_string)
 
-print(len(cards))
 features = []
 labels = []
 for card in cards:
-	print("Name: %s, colors: %s, cmc: %s, textLength: %s" % (card["name"], getSize(card["colors"]), card["cmc"], getSize(card["text"])))
-	features.append((getSize(card["colors"]), card["cmc"], getSize(card["text"])))
+	#print("Name: %s" % (card["name"]))
+	features.append(computeFeatures(card))
 	if (card["name"] in playedCards):
 		print(card["name"] + " is played!")
 		labels.append(1)
@@ -49,4 +67,12 @@ for card in cards:
 clf = tree.DecisionTreeClassifier()
 clf = clf.fit(features , labels)
 
-print(clf.predict([[0, 0, 130]]))
+print("Please enter a MTG card name to evaluate: ")
+card_input = input()
+card = getCardByName(card_input)
+
+new_card_features = []
+new_card_features.append(computeFeatures(card))
+print(new_card_features)
+print(clf.predict(new_card_features))
+#print(clf.predict([[0, 0, 130]]))
